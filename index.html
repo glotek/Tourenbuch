@@ -6,13 +6,13 @@
   <title>Touren-Inspiration</title>
   <style>
     :root {
-      --bg-color: #151618; /* Tiefes Felsgrau */
-      --card-bg: #222428; /* Helleres Schiefergrau */
-      --accent-color: #00d2ff; /* Leuchtendes Eisblau */
+      --bg-color: #151618;
+      --card-bg: #222428;
+      --accent-color: #00d2ff;
       --accent-glow: 0 0 12px rgba(0, 210, 255, 0.4);
-      --text-main: #e8eaed; /* Schneeweiß */
-      --text-muted: #9aa0a6; /* Verwaschenes Grau */
-      --done-bg: #1a1c1f; /* Abgedunkelt für begangene Touren */
+      --text-main: #e8eaed;
+      --text-muted: #9aa0a6;
+      --done-bg: #1a1c1f;
     }
 
     body {
@@ -124,7 +124,6 @@
       opacity: 0.85;
     }
 
-    /* WICHTIG: Kein line-through für den Titel, nur abgedunkelt bei "gemacht" */
     .tour-item.done .tour-title {
       color: var(--text-muted);
     }
@@ -192,6 +191,17 @@
       width: auto;
     }
 
+    .btn-edit {
+      border-color: #f39c12;
+      color: #f39c12;
+    }
+
+    .btn-edit:hover {
+      background-color: #f39c12;
+      color: var(--bg-color);
+      box-shadow: 0 0 10px rgba(243, 156, 18, 0.4);
+    }
+
     .btn-delete {
       border-color: #ff4d4d;
       color: #ff4d4d;
@@ -213,31 +223,33 @@
       .filter-grid {
         grid-template-columns: 1fr;
       }
+      .tour-actions {
+        flex-direction: column;
+      }
+      .btn-small {
+        width: 100%;
+      }
     }
   </style>
 </head>
 <body>
 
   <header>
-    <!-- Neues geometrisches Berg-Logo als SVG -->
     <svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <mask id="cutout">
           <rect width="100" height="100" fill="white" />
-          <!-- Schräge Schnitte für die 3 weißen Spalten -->
           <polygon points="40,10 20,90 30,90 50,10" fill="black" />
           <polygon points="60,10 40,90 50,90 70,10" fill="black" />
           <polygon points="80,10 60,90 70,90 90,10" fill="black" />
         </mask>
       </defs>
-      <!-- Hauptdreieck, das durch die Maske geschnitten wird -->
       <polygon points="50,5 10,90 90,90" mask="url(#cutout)" />
     </svg>
     <h1>Touren-Inspiration</h1>
   </header>
 
   <div class="container">
-    <!-- Filter und Suche -->
     <div class="controls-card">
       <input type="text" id="searchInput" placeholder="Suche nach Tour, Region oder Material..." oninput="filterTours()">
       
@@ -261,7 +273,6 @@
       </div>
     </div>
 
-    <!-- Formular für neue Tour -->
     <div class="form-card" id="tourFormContainer" style="display: none;">
       <form id="tourForm">
         <input type="text" id="tourName" placeholder="Name der Tour" required>
@@ -280,23 +291,20 @@
         
         <textarea id="tourNotes" rows="3" placeholder="Notizen (Material, Besonderheiten, etc.)"></textarea>
         
-        <button type="submit">In Cloud Speichern</button>
+        <button type="submit" id="submitBtn">In Cloud Speichern</button>
       </form>
     </div>
 
-    <!-- Touren Liste -->
     <ul class="tour-list" id="tourList">
       <li style="text-align: center; color: var(--text-muted); padding: 20px;">Lade Touren aus der Cloud...</li>
     </ul>
   </div>
 
-  <!-- Firebase Integration Modular -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
     import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy } 
     from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-    // DEINE ECHTEN FIREBASE DATEN
     const firebaseConfig = {
       apiKey: "AIzaSyDi4fy0RSsvYYh_u55qj8VIokDISpA16oY",
       authDomain: "tourenbuch-51427.firebaseapp.com",
@@ -312,8 +320,8 @@
     const toursCollection = collection(db, "tours");
 
     let allTours = [];
+    let currentEditId = null;
 
-    // Formular Logik
     window.toggleForm = () => {
       const form = document.getElementById('tourFormContainer');
       const btn = document.getElementById('toggleFormBtn');
@@ -323,39 +331,46 @@
       } else {
         form.style.display = 'none';
         btn.innerText = '+ Neue Tour';
+        document.getElementById('tourForm').reset();
+        currentEditId = null;
+        document.getElementById('submitBtn').innerText = 'In Cloud Speichern';
       }
     };
 
-    // Tour speichern
     document.getElementById('tourForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const btn = e.target.querySelector('button');
-      btn.innerText = 'Speichert...';
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.innerText = 'Speichert...';
 
-      const newTour = {
+      const tourData = {
         name: document.getElementById('tourName').value,
         region: document.getElementById('tourRegion').value,
         category: document.getElementById('tourCategory').value,
         link: document.getElementById('tourLink').value,
         notes: document.getElementById('tourNotes').value,
-        isDone: false,
-        doneDate: null,
-        createdAt: new Date().toISOString()
       };
 
       try {
-        await addDoc(toursCollection, newTour);
+        if (currentEditId) {
+          const tourRef = doc(db, "tours", currentEditId);
+          await updateDoc(tourRef, tourData);
+          currentEditId = null;
+        } else {
+          tourData.isDone = false;
+          tourData.doneDate = null;
+          tourData.createdAt = new Date().toISOString();
+          await addDoc(toursCollection, tourData);
+        }
         document.getElementById('tourForm').reset();
         window.toggleForm();
       } catch (error) {
         console.error("Fehler beim Speichern: ", error);
         alert("Fehler beim Speichern. Hast du die Firestore Datenbank im Testmodus aktiviert?");
       } finally {
-        btn.innerText = 'In Cloud Speichern';
+        submitBtn.innerText = 'In Cloud Speichern';
       }
     });
 
-    // Touren in Echtzeit abrufen
     const q = query(toursCollection, orderBy("createdAt", "desc"));
     onSnapshot(q, (snapshot) => {
       allTours = [];
@@ -363,12 +378,8 @@
         allTours.push({ id: doc.id, ...doc.data() });
       });
       renderTours();
-    }, (error) => {
-      console.error("Datenbank-Fehler:", error);
-      document.getElementById('tourList').innerHTML = `<li style="text-align:center; color:#ff4d4d;">Verbindung zur Cloud fehlgeschlagen. Überprüfe die Firestore Rules in der Console.</li>`;
     });
 
-    // Globale Funktionen für UI-Aktionen
     window.toggleDone = async (id, currentStatus) => {
       const tourRef = doc(db, "tours", id);
       const doneDate = !currentStatus ? new Date().toLocaleDateString('de-DE') : null;
@@ -384,9 +395,28 @@
       }
     };
 
+    window.editTour = (id) => {
+      const tour = allTours.find(t => t.id === id);
+      if (!tour) return;
+      
+      document.getElementById('tourName').value = tour.name;
+      document.getElementById('tourRegion').value = tour.region;
+      document.getElementById('tourCategory').value = tour.category;
+      document.getElementById('tourLink').value = tour.link || '';
+      document.getElementById('tourNotes').value = tour.notes || '';
+      
+      currentEditId = id;
+      
+      const form = document.getElementById('tourFormContainer');
+      form.style.display = 'block';
+      document.getElementById('toggleFormBtn').innerText = 'Abbrechen';
+      document.getElementById('submitBtn').innerText = 'Änderungen speichern';
+      
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
     window.filterTours = () => renderTours();
 
-    // Render Funktion
     function renderTours() {
       const list = document.getElementById('tourList');
       const searchQuery = document.getElementById('searchInput').value.toLowerCase();
@@ -432,8 +462,9 @@
           ${linkHTML}
           <div class="tour-actions">
             <button class="btn-small" onclick="toggleDone('${tour.id}', ${tour.isDone})">
-              ${tour.isDone ? '🔄 Wieder auf Geplant setzen' : '✅ Als gemacht markieren'}
+              ${tour.isDone ? '🔄 Auf Geplant' : '✅ Erledigt'}
             </button>
+            <button class="btn-small btn-edit" onclick="editTour('${tour.id}')">✏️ Bearbeiten</button>
             <button class="btn-small btn-delete" onclick="deleteTour('${tour.id}')">🗑 Löschen</button>
           </div>
         `;
