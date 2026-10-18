@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Touren-Inspiration</title>
+  <style>
+    :root {
+      --bg-color: #151618; /* Tiefes Felsgrau */
+      --card-bg: #222428; /* Helleres Schiefergrau */
+      --accent-color: #00d2ff; /* Leuchtendes Eisblau */
+      --accent-glow: 0 0 12px rgba(0, 210, 255, 0.4);
+      --text-main: #e8eaed; /* Schneeweiß */
+      --text-muted: #9aa0a6; /* Verwaschenes Grau */
+      --done-bg: #1a1c1f; /* Abgedunkelt für begangene Touren */
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+    }
+
+    header {
+      background-color: var(--bg-color);
+      padding: 30px 20px;
+      text-align: center;
+      border-bottom: 1px solid rgba(0, 210, 255, 0.2);
+      box-shadow: var(--accent-glow);
+    }
+
+    .logo-svg {
+      width: 70px;
+      height: 70px;
+      fill: var(--accent-color);
+      filter: drop-shadow(0 0 8px rgba(0, 210, 255, 0.6));
+      margin-bottom: 15px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.8rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+
+    .form-card, .controls-card {
+      background-color: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 25px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    input, select, textarea {
+      width: 100%;
+      background-color: #1b1d20;
+      border: 1px solid #3a3d42;
+      color: var(--text-main);
+      padding: 12px;
+      margin-bottom: 15px;
+      border-radius: 6px;
+      box-sizing: border-box;
+      font-family: inherit;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent-color);
+      box-shadow: 0 0 5px rgba(0, 210, 255, 0.3);
+    }
+
+    button {
+      background-color: transparent;
+      color: var(--accent-color);
+      border: 1px solid var(--accent-color);
+      padding: 12px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+
+    button:hover {
+      background-color: var(--accent-color);
+      color: var(--bg-color);
+      box-shadow: var(--accent-glow);
+    }
+
+    .tour-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .tour-item {
+      background-color: var(--card-bg);
+      margin-bottom: 15px;
+      padding: 20px;
+      border-radius: 12px;
+      border-left: 4px solid var(--accent-color);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .tour-item.done {
+      background-color: var(--done-bg);
+      border-left-color: var(--text-muted);
+      opacity: 0.85;
+    }
+
+    /* WICHTIG: Kein line-through für den Titel, nur abgedunkelt bei "gemacht" */
+    .tour-item.done .tour-title {
+      color: var(--text-muted);
+    }
+
+    .tour-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .tour-title {
+      font-size: 1.3rem;
+      font-weight: bold;
+      margin: 0;
+    }
+
+    .tour-meta {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .tour-category {
+      background-color: rgba(0, 210, 255, 0.1);
+      color: var(--accent-color);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+    }
+
+    .tour-item.done .tour-category {
+      background-color: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+    }
+
+    .tour-notes {
+      font-size: 0.95rem;
+      margin-top: 5px;
+      white-space: pre-wrap;
+    }
+
+    .tour-link {
+      color: var(--accent-color);
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    .tour-link:hover {
+      text-decoration: underline;
+    }
+
+    .tour-actions {
+      margin-top: 15px;
+      display: flex;
+      gap: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 15px;
+    }
+
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      width: auto;
+    }
+
+    .btn-delete {
+      border-color: #ff4d4d;
+      color: #ff4d4d;
+    }
+
+    .btn-delete:hover {
+      background-color: #ff4d4d;
+      color: white;
+      box-shadow: 0 0 10px rgba(255, 77, 77, 0.4);
+    }
+
+    .filter-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+
+    @media (max-width: 600px) {
+      .filter-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <!-- Neues geometrisches Berg-Logo als SVG -->
+    <svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <mask id="cutout">
+          <rect width="100" height="100" fill="white" />
+          <!-- Schräge Schnitte für die 3 weißen Spalten -->
+          <polygon points="40,10 20,90 30,90 50,10" fill="black" />
+          <polygon points="60,10 40,90 50,90 70,10" fill="black" />
+          <polygon points="80,10 60,90 70,90 90,10" fill="black" />
+        </mask>
+      </defs>
+      <!-- Hauptdreieck, das durch die Maske geschnitten wird -->
+      <polygon points="50,5 10,90 90,90" mask="url(#cutout)" />
+    </svg>
+    <h1>Touren-Inspiration</h1>
+  </header>
+
+  <div class="container">
+    <!-- Filter und Suche -->
+    <div class="controls-card">
+      <input type="text" id="searchInput" placeholder="Suche nach Tour, Region oder Material..." oninput="filterTours()">
+      
+      <div class="filter-grid">
+        <select id="filterCategory" onchange="filterTours()">
+          <option value="all">Alle Kategorien</option>
+          <option value="Mehrseillängen Plaisier">Mehrseillängen Plaisier</option>
+          <option value="Mehrseillängen Trad">Mehrseillängen Trad</option>
+          <option value="Drytooling">Drytooling</option>
+          <option value="Eisklettern">Eisklettern</option>
+          <option value="Alpine Touren">Alpine Touren</option>
+        </select>
+
+        <select id="filterStatus" onchange="filterTours()">
+          <option value="all">Geplant & Gemacht</option>
+          <option value="planned">Nur Geplante</option>
+          <option value="done">Nur Gemachte</option>
+        </select>
+
+        <button onclick="toggleForm()" id="toggleFormBtn">+ Neue Tour</button>
+      </div>
+    </div>
+
+    <!-- Formular für neue Tour -->
+    <div class="form-card" id="tourFormContainer" style="display: none;">
+      <form id="tourForm">
+        <input type="text" id="tourName" placeholder="Name der Tour" required>
+        <input type="text" id="tourRegion" placeholder="Region / Gebirge" required>
+        
+        <select id="tourCategory" required>
+          <option value="" disabled selected>Kategorie wählen...</option>
+          <option value="Mehrseillängen Plaisier">Mehrseillängen Plaisier</option>
+          <option value="Mehrseillängen Trad">Mehrseillängen Trad</option>
+          <option value="Drytooling">Drytooling</option>
+          <option value="Eisklettern">Eisklettern</option>
+          <option value="Alpine Touren">Alpine Touren</option>
+        </select>
+
+        <input type="url" id="tourLink" placeholder="Link zum Topo (https://...)">
+        
+        <textarea id="tourNotes" rows="3" placeholder="Notizen (Material, Besonderheiten, etc.)"></textarea>
+        
+        <button type="submit">In Cloud Speichern</button>
+      </form>
+    </div>
+
+    <!-- Touren Liste -->
+    <ul class="tour-list" id="tourList">
+      <li style="text-align: center; color: var(--text-muted); padding: 20px;">Lade Touren aus der Cloud...</li>
+    </ul>
+  </div>
+
+  <!-- Firebase Integration Modular -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy } 
+    from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+    // DEINE ECHTEN FIREBASE DATEN
+    const firebaseConfig = {
+      apiKey: "AIzaSyDi4fy0RSsvYYh_u55qj8VIokDISpA16oY",
+      authDomain: "tourenbuch-51427.firebaseapp.com",
+      projectId: "tourenbuch-51427",
+      storageBucket: "tourenbuch-51427.firebasestorage.app",
+      messagingSenderId: "1043557048178",
+      appId: "1:1043557048178:web:7b659d95dab8abc4be47eb",
+      measurementId: "G-Y4PVQ2Q6CD"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const toursCollection = collection(db, "tours");
+
+    let allTours = [];
+
+    // Formular Logik
+    window.toggleForm = () => {
+      const form = document.getElementById('tourFormContainer');
+      const btn = document.getElementById('toggleFormBtn');
+      if (form.style.display === 'none') {
+        form.style.display = 'block';
+        btn.innerText = 'Schließen';
+      } else {
+        form.style.display = 'none';
+        btn.innerText = '+ Neue Tour';
+      }
+    };
+
+    // Tour speichern
+    document.getElementById('tourForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button');
+      btn.innerText = 'Speichert...';
+
+      const newTour = {
+        name: document.getElementById('tourName').value,
+        region: document.getElementById('tourRegion').value,
+        category: document.getElementById('tourCategory').value,
+        link: document.getElementById('tourLink').value,
+        notes: document.getElementById('tourNotes').value,
+        isDone: false,
+        doneDate: null,
+        createdAt: new Date().toISOString()
+      };
+
+      try {
+        await addDoc(toursCollection, newTour);
+        document.getElementById('tourForm').reset();
+        window.toggleForm();
+      } catch (error) {
+        console.error("Fehler beim Speichern: ", error);
+        alert("Fehler beim Speichern. Hast du die Firestore Datenbank im Testmodus aktiviert?");
+      } finally {
+        btn.innerText = 'In Cloud Speichern';
+      }
+    });
+
+    // Touren in Echtzeit abrufen
+    const q = query(toursCollection, orderBy("createdAt", "desc"));
+    onSnapshot(q, (snapshot) => {
+      allTours = [];
+      snapshot.forEach((doc) => {
+        allTours.push({ id: doc.id, ...doc.data() });
+      });
+      renderTours();
+    }, (error) => {
+      console.error("Datenbank-Fehler:", error);
+      document.getElementById('tourList').innerHTML = `<li style="text-align:center; color:#ff4d4d;">Verbindung zur Cloud fehlgeschlagen. Überprüfe die Firestore Rules in der Console.</li>`;
+    });
+
+    // Globale Funktionen für UI-Aktionen
+    window.toggleDone = async (id, currentStatus) => {
+      const tourRef = doc(db, "tours", id);
+      const doneDate = !currentStatus ? new Date().toLocaleDateString('de-DE') : null;
+      await updateDoc(tourRef, { 
+        isDone: !currentStatus,
+        doneDate: doneDate
+      });
+    };
+
+    window.deleteTour = async (id) => {
+      if(confirm("Tour wirklich löschen?")) {
+        await deleteDoc(doc(db, "tours", id));
+      }
+    };
+
+    window.filterTours = () => renderTours();
+
+    // Render Funktion
+    function renderTours() {
+      const list = document.getElementById('tourList');
+      const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+      const catFilter = document.getElementById('filterCategory').value;
+      const statFilter = document.getElementById('filterStatus').value;
+
+      list.innerHTML = '';
+
+      let filteredTours = allTours.filter(tour => {
+        const matchesSearch = tour.name.toLowerCase().includes(searchQuery) || 
+                              tour.region.toLowerCase().includes(searchQuery) || 
+                              tour.notes.toLowerCase().includes(searchQuery);
+        const matchesCat = catFilter === 'all' || tour.category === catFilter;
+        const matchesStat = statFilter === 'all' || 
+                            (statFilter === 'done' && tour.isDone) || 
+                            (statFilter === 'planned' && !tour.isDone);
+        
+        return matchesSearch && matchesCat && matchesStat;
+      });
+
+      if (filteredTours.length === 0) {
+        list.innerHTML = '<li style="text-align: center; color: var(--text-muted); padding: 20px;">Keine Touren gefunden.</li>';
+        return;
+      }
+
+      filteredTours.forEach(tour => {
+        const li = document.createElement('li');
+        li.className = `tour-item ${tour.isDone ? 'done' : ''}`;
+        
+        let linkHTML = tour.link ? `<a href="${tour.link}" target="_blank" class="tour-link">Topo ansehen ↗</a>` : '';
+        let dateHTML = tour.isDone && tour.doneDate ? `<span>✓ Begangen am ${tour.doneDate}</span>` : '';
+
+        li.innerHTML = `
+          <div class="tour-header">
+            <h3 class="tour-title">${tour.name}</h3>
+            <span class="tour-category">${tour.category}</span>
+          </div>
+          <div class="tour-meta">
+            <span>📍 ${tour.region}</span>
+            ${dateHTML}
+          </div>
+          ${tour.notes ? `<div class="tour-notes">${tour.notes}</div>` : ''}
+          ${linkHTML}
+          <div class="tour-actions">
+            <button class="btn-small" onclick="toggleDone('${tour.id}', ${tour.isDone})">
+              ${tour.isDone ? '🔄 Wieder auf Geplant setzen' : '✅ Als gemacht markieren'}
+            </button>
+            <button class="btn-small btn-delete" onclick="deleteTour('${tour.id}')">🗑 Löschen</button>
+          </div>
+        `;
+        list.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>
