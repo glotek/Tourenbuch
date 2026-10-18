@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="de" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GipfelBuch - Alpine Touren Inspirationen</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        ice: {
+                            50: '#ecfeff',
+                            100: '#cffafe',
+                            300: '#67e8f9',
+                            400: '#22d3ee', // Leuchtendes Eisblau
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            900: '#164e63',
+                        },
+                        rock: {
+                            300: '#d1d5db',
+                            400: '#9ca3af',
+                            500: '#6b7280',
+                            600: '#4b5563',
+                            700: '#374151', 
+                            800: '#1f2937', // Kühles dunkles Felsgrau
+                            900: '#111827', // Sehr dunkles Grau
+                            950: '#030712', // Fast schwarzer Fels
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #030712; /* rock-950 */
+            color: #f3f4f6;
+            background-image: radial-gradient(rgba(34, 211, 238, 0.03) 1px, transparent 0); /* Eisblaues Grid */
+            background-size: 24px 24px;
+        }
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.85); /* rock-900 */
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .glass-card {
+            background: rgba(31, 41, 55, 0.7); /* rock-800 */
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111827; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4b5563; 
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-ice-500 selection:text-white">
+
+    <!-- Header -->
+    <header class="bg-rock-900/95 border-b border-rock-800 sticky top-0 z-40 backdrop-blur-md shadow-lg shadow-black/20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 flex items-center justify-center">
+                    <!-- Neues minimalistisches Inline SVG Logo -->
+                    <svg viewBox="0 0 100 100" class="w-full h-full text-ice-400 fill-current drop-shadow-[0_0_10px_rgba(34,211,238,0.3)]">
+                        <mask id="mountain-cuts">
+                            <rect width="100" height="100" fill="white" />
+                            <!-- Die drei parallelen, diagonalen Schnitte -->
+                            <g stroke="black" stroke-width="6" transform="rotate(-25, 50, 50)">
+                                <line x1="18" y1="-50" x2="18" y2="150" />
+                                <line x1="34" y1="-50" x2="34" y2="150" />
+                                <line x1="50" y1="-50" x2="50" y2="150" />
+                            </g>
+                        </mask>
+                        <polygon points="50,10 92,90 8,90" mask="url(#mountain-cuts)" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                        Gipfel<span class="text-ice-400">Buch</span>
+                        <span class="text-xs font-semibold px-2 py-0.5 rounded bg-ice-500/10 text-ice-400 border border-ice-500/20">Cloud</span>
+                    </h1>
+                </div>
+            </div>
+            
+            <!-- Connection Status -->
+            <div id="auth-status" class="text-xs sm:text-sm font-medium px-3 py-1.5 rounded-full bg-rock-800/80 border border-rock-700/60 text-rock-400 flex items-center gap-2">
+                <i class="fa-solid fa-circle-notch fa-spin text-ice-400"></i>
+                <span>Verbinde...</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+        <!-- Form Collapse Toggle -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <button id="toggle-form-btn" class="flex items-center gap-2 bg-ice-600 hover:bg-ice-500 text-white font-medium py-2.5 px-5 rounded-xl transition-all shadow-md shadow-ice-600/20 active:scale-[0.98]">
+                    <i class="fa-solid fa-plus text-sm" id="toggle-icon"></i>
+                    <span id="toggle-text">Neue Tour hinzufügen</span>
+                </button>
+            </div>
+
+            <!-- Form Container -->
+            <section id="tour-form-wrapper" class="hidden transition-all duration-300">
+                <div class="glass-panel rounded-2xl p-6 sm:p-8 border border-rock-800 shadow-2xl relative">
+                    <div class="flex justify-between items-center pb-4 mb-6 border-b border-rock-800">
+                        <h2 class="text-lg font-semibold text-white flex items-center gap-2" id="form-heading">
+                            <i class="fa-solid fa-pen-to-square text-ice-400"></i>
+                            <span>Neue Tour-Inspiration speichern</span>
+                        </h2>
+                        <button id="cancel-edit-btn" type="button" class="text-rock-400 hover:text-white text-sm hidden transition-colors">
+                            Abbrechen
+                        </button>
+                    </div>
+
+                    <form id="tour-form" class="space-y-5">
+                        <input type="hidden" id="edit-doc-id" value="">
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                            <!-- Tourenname -->
+                            <div>
+                                <label for="title" class="block text-xs font-semibold uppercase tracking-wider text-rock-400 mb-1.5">Tourenname *</label>
+                                <input type="text" id="title" required placeholder="z.B. Walkerpfeiler, Cassin" class="w-full bg-rock-900 border border-rock-700/80 rounded-xl px-4 py-2.5 text-sm text-white placeholder-rock-500 focus:outline-none focus:border-ice-400 focus:ring-1 focus:ring-ice-400 transition-all">
+                            </div>
+
+                            <!-- Region -->
+                            <div>
+                                <label for="region" class="block text-xs font-semibold uppercase tracking-wider text-rock-400 mb-1.5">Region / Gebirge</label>
+                                <input type="text" id="region" placeholder="z.B. Mont Blanc Gruppe, Dolomiten" class="w-full bg-rock-900 border border-rock-700/80 rounded-xl px-4 py-2.5 text-sm text-white placeholder-rock-500 focus:outline-none focus:border-ice-400 focus:ring-1 focus:ring-ice-400 transition-all">
+                            </div>
+
+                            <!-- Kategorie -->
+                            <div>
+                                <label for="category" class="block text-xs font-semibold uppercase tracking-wider text-rock-400 mb-1.5">Kategorie *</label>
+                                <select id="category" required class="w-full bg-rock-900 border border-rock-700/80 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-ice-400 focus:ring-1 focus:ring-ice-400 transition-all">
+                                    <option value="" disabled selected>Kategorie wählen...</option>
+                                    <option value="MSL_Plaisir">Mehrseillänge Plaisir</option>
+                                    <option value="MSL_Trad">Mehrseillänge Trad</option>
+                                    <option value="Drytooling">Drytooling</option>
+                                    <option value="Eisklettern">Eisklettern</option>
+                                    <option value="Alpine_Tour">Alpine Tour</option>
+                                </select>
+                            </div>
+
+                            <!-- Link Topo -->
+                            <div>
+                                <label for="link" class="block text-xs font-semibold uppercase tracking-wider text-rock-400 mb-1.5">Link zu Topo / Webseite</label>
+                                <input type="url" id="link" placeholder="https://..." class="w-full bg-rock-900 border border-rock-700/80 rounded-xl px-4 py-2.5 text-sm text-white placeholder-rock-500 focus:outline-none focus:border-ice-400 focus:ring-1 focus:ring-ice-400 transition-all">
+                            </div>
+
+                            <!-- Status -->
+                            <div>
+                                <label for="status" class="block text-xs font-semibold uppercase tracking-wider text-rock-400 mb-1.5">Status *</label>
+                                <select id="status" class="w-full bg-rock-900 border border-rock-700/80 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-ice-400 focus:ring-1 focus:ring-ice-400 transition-all">
+                                    <option value="Planned">Geplant</option>
+                                    <option value="Done">Gemacht / Erledigt</option>
+                                </select>
+                            </div>
+
+                            <!-- Datum der Begehung -->
+                            <div id="done-date-container" class="hidden">
+                                <label for="done-date" class="block text-xs font-semibold uppercase tracking-wider text-rock-400 mb-1.5">Datum der Begehung</label>
+                                <input type="date" id="done-date" class="w-full bg-rock-900 border border-rock-700/80 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-ice-400 focus:ring-1 focus:ring-ice-400 transition-all text-rock-400">
+                            </div>
+                        </div>
+
+                        <!-- Notizen / Details -->
+                        <div>
+                            <label for="notes" class="block text-xs font-semibold uppercase tracking-wider text-rock-400 mb-1.5">Notizen / Details (Absicherung, Material, etc.)</label>
+                            <textarea id="notes" rows="3" placeholder="z.B. 12 SL, 6b (5c obl.), 1 Set Cams 0.3-2 erforderlich..." class="w-full bg-rock-900 border border-rock-700/80 rounded-xl px-4 py-2.5 text-sm text-white placeholder-rock-500 focus:outline-none focus:border-ice-400 focus:ring-1 focus:ring-ice-400 transition-all resize-y"></textarea>
+                        </div>
+
+                        <div class="flex justify-end gap-3 pt-2">
+                            <button type="button" id="close-form-btn" class="bg-rock-800 hover:bg-rock-700 text-rock-300 font-medium py-2.5 px-5 rounded-xl transition-all text-sm">
+                                Abbrechen
+                            </button>
+                            <button type="submit" id="submit-btn" class="bg-ice-600 hover:bg-ice-500 text-white font-medium py-2.5 px-6 rounded-xl transition-all text-sm shadow-md shadow-ice-600/20 flex items-center gap-2">
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                                <span>Speichern & Sync</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <section class="glass-panel rounded-2xl p-4 sm:p-5 mb-8 border border-rock-800 shadow-lg">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                <!-- Suche -->
+                <div class="md:col-span-5 relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-rock-500 text-sm"></i>
+                    <input type="text" id="search-input" placeholder="Suchen..." class="w-full bg-rock-900 border border-rock-800 rounded-xl pl-10 pr-4 py-2 text-sm text-white placeholder-rock-500 focus:outline-none focus:border-ice-400 focus:ring-1 focus:ring-ice-400 transition-all">
+                </div>
+
+                <!-- Filter Kategorie -->
+                <div class="md:col-span-4 flex items-center gap-2">
+                    <label for="filter-category" class="text-xs font-semibold uppercase tracking-wider text-rock-400 whitespace-nowrap hidden sm:inline">Kategorie:</label>
+                    <select id="filter-category" class="w-full bg-rock-900 border border-rock-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-ice-400 focus:ring-1 focus:ring-ice-400 transition-all">
+                        <option value="All">Alle Kategorien</option>
+                        <option value="MSL_Plaisir">MSL Plaisir</option>
+                        <option value="MSL_Trad">MSL Trad</option>
+                        <option value="Drytooling">Drytooling</option>
+                        <option value="Eisklettern">Eisklettern</option>
+                        <option value="Alpine_Tour">Alpine Tour</option>
+                    </select>
+                </div>
+
+                <!-- Filter Status -->
+                <div class="md:col-span-3 flex items-center gap-2">
+                    <label for="filter-status" class="text-xs font-semibold uppercase tracking-wider text-rock-400 whitespace-nowrap hidden sm:inline">Status:</label>
+                    <select id="filter-status" class="w-full bg-rock-900 border border-rock-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-ice-400 focus:ring-1 focus:ring-ice-400 transition-all">
+                        <option value="All">Alle (Geplant & Gemacht)</option>
+                        <option value="Planned">Geplant</option>
+                        <option value="Done">Gemacht</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tours Grid Section -->
+        <section>
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                    <i class="fa-solid fa-compass text-ice-400"></i>
+                    <span>Touren Übersicht</span>
+                </h2>
+                <span id="tour-count-badge" class="text-xs font-medium px-3 py-1 rounded-full bg-rock-800 border border-rock-700 text-rock-300">
+                    0 Touren
+                </span>
+            </div>
+
+            <!-- Spinner -->
+            <div id="loading-spinner" class="flex flex-col items-center justify-center py-16 gap-3">
+                <i class="fa-solid fa-circle-notch fa-spin text-3xl text-ice-400"></i>
+                <p class="text-rock-400 text-sm">Lade Touren...</p>
+            </div>
+
+            <!-- Tour Cards Grid -->
+            <div id="tours-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
+                <!-- Cards get injected here -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="hidden text-center py-16 px-4 glass-panel rounded-2xl border border-rock-800">
+                <div class="w-16 h-16 mx-auto bg-rock-800/80 rounded-2xl flex items-center justify-center mb-4 text-rock-500 border border-rock-700/50 shadow-inner">
+                    <i class="fa-solid fa-mountain-sun text-2xl"></i>
+                </div>
+                <h3 class="text-base font-semibold text-white mb-1" id="empty-title">Keine Touren gefunden</h3>
+                <p class="text-rock-400 text-sm max-w-sm mx-auto" id="empty-desc">Passe deine Filter an oder füge eine neue Touren-Inspiration hinzu.</p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-rock-900/50 border-t border-rock-800/80 py-6 text-center text-xs text-rock-500 mt-auto">
+        <p>GipfelBuch App &bull; Cloud-Synchronisierte Alpine Touren-Verwaltung</p>
+    </footer>
+
+    <!-- Error Modal -->
+    <div id="error-modal" class="fixed inset-0 bg-rock-950/90 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
+        <div class="bg-rock-900 border border-rock-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl">
+            <div class="flex items-center text-red-400 mb-3 gap-3">
+                <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+                <h3 class="text-base font-bold">Hinweis</h3>
+            </div>
+            <p id="error-message" class="text-rock-300 text-sm mb-5 leading-relaxed"></p>
+            <div class="flex justify-end">
+                <button onclick="closeErrorModal()" class="bg-rock-800 hover:bg-rock-700 text-white text-sm font-medium py-2 px-4 rounded-xl transition-colors">
+                    Schließen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK Modules -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'gipfelbuch-default-app';
+        let firebaseConfig = {};
+        
+        try {
+            firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        } catch(e) {
+            console.error("Config Parse Error", e);
+        }
+
+        // Category Configuration & Styling Mapping (adjusted for ice/rock theme)
+        const CATEGORIES = {
+            'MSL_Plaisir': { label: 'MSL Plaisir', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', icon: 'fa-sun' },
+            'MSL_Trad': { label: 'MSL Trad', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20', icon: 'fa-hand-back-fist' },
+            'Drytooling': { label: 'Drytooling', color: 'bg-purple-500/10 text-purple-400 border-purple-500/20', icon: 'fa-gavel' },
+            'Eisklettern': { label: 'Eisklettern', color: 'bg-ice-500/10 text-ice-400 border-ice-500/30', icon: 'fa-snowflake' },
+            'Alpine_Tour': { label: 'Alpine Tour', color: 'bg-rock-400/10 text-rock-300 border-rock-500/30', icon: 'fa-mountain' }
+        };
+
+        let db, auth, currentUser;
+        let allTours = [];
+
+        // UI Elements
+        const authStatus = document.getElementById('auth-status');
+        const tourFormWrapper = document.getElementById('tour-form-wrapper');
+        const tourForm = document.getElementById('tour-form');
+        const toggleFormBtn = document.getElementById('toggle-form-btn');
+        const toggleIcon = document.getElementById('toggle-icon');
+        const toggleText = document.getElementById('toggle-text');
+        const closeFormBtn = document.getElementById('close-form-btn');
+        const cancelEditBtn = document.getElementById('cancel-edit-btn');
+        const formHeading = document.getElementById('form-heading');
+        const submitBtn = document.getElementById('submit-btn');
+        const statusSelect = document.getElementById('status');
+        const doneDateContainer = document.getElementById('done-date-container');
+        const filterCategory = document.getElementById('filter-category');
+        const filterStatus = document.getElementById('filter-status');
+        const searchInput = document.getElementById('search-input');
+        const toursGrid = document.getElementById('tours-grid');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const emptyState = document.getElementById('empty-state');
+        const tourCountBadge = document.getElementById('tour-count-badge');
+
+        window.showError = function(msg) {
+            document.getElementById('error-message').textContent = msg;
+            const modal = document.getElementById('error-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        };
+        window.closeErrorModal = function() {
+            const modal = document.getElementById('error-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        };
+
+        async function init() {
+            try {
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                const customToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                if (customToken) {
+                    await signInWithCustomToken(auth, customToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                currentUser = auth.currentUser;
+                authStatus.innerHTML = `<span class="w-2 h-2 rounded-full bg-ice-400 animate-pulse"></span><span class="text-rock-300">Online</span>`;
+                setupSnapshotListener();
+            } catch (err) {
+                console.error("Auth / Firebase Init Error:", err);
+                authStatus.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span><span class="text-amber-300">Offline</span>`;
+                loadingSpinner.classList.add('hidden');
+                showError("Verbindung zur Cloud unterbrochen.");
+            }
+        }
+
+        function setupSnapshotListener() {
+            if (!currentUser) return;
+            const toursCollectionRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'tours');
+
+            onSnapshot(toursCollectionRef, (snapshot) => {
+                allTours = [];
+                snapshot.forEach((docSnapshot) => {
+                    allTours.push({ id: docSnapshot.id, ...docSnapshot.data() });
+                });
+
+                allTours.sort((a, b) => {
+                    const timeA = a.createdAt?.toMillis() || 0;
+                    const timeB = b.createdAt?.toMillis() || 0;
+                    return timeB - timeA;
+                });
+
+                filterAndRender();
+                loadingSpinner.classList.add('hidden');
+            }, (error) => {
+                console.error("Firestore Listener Error:", error);
+                loadingSpinner.classList.add('hidden');
+                showError("Fehler beim Abrufen der Touren-Daten.");
+            });
+        }
+
+        function filterAndRender() {
+            const catVal = filterCategory.value;
+            const statusVal = filterStatus.value;
+            const searchVal = searchInput.value.toLowerCase().trim();
+
+            const filtered = allTours.filter(tour => {
+                if (catVal !== 'All' && tour.category !== catVal) return false;
+                const isDone = tour.status === 'Done';
+                if (statusVal === 'Planned' && isDone) return false;
+                if (statusVal === 'Done' && !isDone) return false;
+                if (searchVal) {
+                    const titleMatch = (tour.title || '').toLowerCase().includes(searchVal);
+                    const regionMatch = (tour.region || '').toLowerCase().includes(searchVal);
+                    const notesMatch = (tour.notes || '').toLowerCase().includes(searchVal);
+                    if (!titleMatch && !regionMatch && !notesMatch) return false;
+                }
+                return true;
+            });
+            renderGrid(filtered);
+        }
+
+        function renderGrid(tours) {
+            toursGrid.innerHTML = '';
+            tourCountBadge.textContent = `${tours.length} Tour${tours.length !== 1 ? 'en' : ''}`;
+
+            if (tours.length === 0) {
+                toursGrid.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            toursGrid.classList.remove('hidden');
+
+            tours.forEach(tour => {
+                const isDone = tour.status === 'Done';
+                const cat = CATEGORIES[tour.category] || { label: 'Unbekannt', color: 'bg-rock-800 text-rock-300 border-rock-700', icon: 'fa-tag' };
+
+                const card = document.createElement('div');
+                card.className = `glass-card rounded-2xl overflow-hidden border transition-all duration-200 flex flex-col justify-between group ${
+                    isDone 
+                        ? 'border-ice-500/30 bg-rock-900/60 opacity-80 hover:opacity-100' 
+                        : 'border-rock-800 hover:border-ice-500/40 hover:shadow-[0_0_15px_rgba(34,211,238,0.05)]'
+                }`;
+
+                card.innerHTML = `
+                    <div class="p-5">
+                        <div class="flex justify-between items-start gap-2 mb-3">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold border ${cat.color}">
+                                <i class="fa-solid ${cat.icon} mr-1.5 opacity-80"></i>${cat.label}
+                            </span>
+                            <div class="flex items-center gap-1 opacity-90 group-hover:opacity-100">
+                                <button class="btn-toggle-status p-1.5 text-rock-400 hover:text-ice-400 rounded-lg hover:bg-rock-800 transition-colors" title="${isDone ? 'Als geplant markieren' : 'Als gemacht markieren'}" data-id="${tour.id}" data-status="${tour.status}">
+                                    <i class="${isDone ? 'fa-solid fa-circle-check text-ice-400 text-lg' : 'fa-regular fa-circle text-lg'}"></i>
+                                </button>
+                                <button class="btn-edit p-1.5 text-rock-400 hover:text-white rounded-lg hover:bg-rock-800 transition-colors" title="Bearbeiten" data-id="${tour.id}">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                <button class="btn-delete p-1.5 text-rock-400 hover:text-red-400 rounded-lg hover:bg-rock-800 transition-colors" title="Löschen" data-id="${tour.id}">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <h3 class="text-lg font-bold text-white mb-1 group-hover:text-ice-400 transition-colors ${isDone ? 'text-rock-300' : ''}">
+                            ${escapeHtml(tour.title)}
+                        </h3>
+                        
+                        ${tour.region ? `
+                            <p class="text-xs font-medium text-rock-400 mb-3 flex items-center gap-1.5">
+                                <i class="fa-solid fa-location-dot text-rock-500"></i>${escapeHtml(tour.region)}
+                            </p>
+                        ` : ''}
+
+                        ${isDone ? `
+                            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-ice-500/10 text-ice-400 border border-ice-500/20 text-xs font-medium mb-3">
+                                <i class="fa-solid fa-check"></i>
+                                <span>Begangen ${tour.doneDate ? 'am ' + formatDate(tour.doneDate) : ''}</span>
+                            </div>
+                        ` : ''}
+
+                        ${tour.notes ? `
+                            <div class="text-xs text-rock-300 bg-rock-950/50 rounded-xl p-3 border border-rock-800/80 mb-3 whitespace-pre-line leading-relaxed">
+                                ${escapeHtml(tour.notes)}
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="p-4 pt-0">
+                        ${tour.link ? `
+                            <a href="${escapeHtml(tour.link)}" target="_blank" rel="noopener noreferrer" class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 bg-rock-800 hover:bg-rock-700 text-ice-50 text-xs font-medium rounded-xl border border-rock-700 transition-all hover:border-ice-500/30">
+                                <span>Topo / Webseite öffnen</span>
+                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-ice-400"></i>
+                            </a>
+                        ` : `
+                            <span class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 bg-rock-900/40 text-rock-600 text-xs font-medium rounded-xl border border-rock-800/50 cursor-not-allowed">
+                                Kein Link hinterlegt
+                            </span>
+                        `}
+                    </div>
+                `;
+
+                card.querySelector('.btn-toggle-status').addEventListener('click', (e) => { e.stopPropagation(); toggleTourStatus(tour.id, tour.status); });
+                card.querySelector('.btn-edit').addEventListener('click', (e) => { e.stopPropagation(); populateFormForEdit(tour); });
+                card.querySelector('.btn-delete').addEventListener('click', (e) => { e.stopPropagation(); deleteTour(tour.id); });
+                toursGrid.appendChild(card);
+            });
+        }
+
+        function openForm() {
+            tourFormWrapper.classList.remove('hidden');
+            toggleIcon.className = "fa-solid fa-chevron-up text-sm";
+            toggleText.textContent = "Formular verbergen";
+        }
+
+        function closeForm() {
+            tourFormWrapper.classList.add('hidden');
+            toggleIcon.className = "fa-solid fa-plus text-sm";
+            toggleText.textContent = "Neue Tour hinzufügen";
+            resetForm();
+        }
+
+        function resetForm() {
+            tourForm.reset();
+            document.getElementById('edit-doc-id').value = '';
+            formHeading.innerHTML = `<i class="fa-solid fa-pen-to-square text-ice-400"></i><span>Neue Tour-Inspiration speichern</span>`;
+            submitBtn.querySelector('span').textContent = 'Speichern & Sync';
+            cancelEditBtn.classList.add('hidden');
+            doneDateContainer.classList.add('hidden');
+        }
+
+        function populateFormForEdit(tour) {
+            document.getElementById('edit-doc-id').value = tour.id;
+            document.getElementById('title').value = tour.title || '';
+            document.getElementById('region').value = tour.region || '';
+            document.getElementById('category').value = tour.category || '';
+            document.getElementById('link').value = tour.link || '';
+            document.getElementById('status').value = tour.status || 'Planned';
+            document.getElementById('notes').value = tour.notes || '';
+            document.getElementById('done-date').value = tour.doneDate || '';
+
+            if (tour.status === 'Done') doneDateContainer.classList.remove('hidden');
+            else doneDateContainer.classList.add('hidden');
+
+            formHeading.innerHTML = `<i class="fa-solid fa-pen-to-square text-ice-400"></i><span>Tour bearbeiten</span>`;
+            submitBtn.querySelector('span').textContent = 'Änderungen speichern';
+            cancelEditBtn.classList.remove('hidden');
+
+            openForm();
+            tourFormWrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        tourForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUser) return;
+
+            const docId = document.getElementById('edit-doc-id').value;
+            let link = document.getElementById('link').value.trim();
+            if (link && !link.startsWith('http://') && !link.startsWith('https://')) link = 'https://' + link;
+
+            const tourData = {
+                title: document.getElementById('title').value.trim(),
+                region: document.getElementById('region').value.trim(),
+                category: document.getElementById('category').value,
+                link: link,
+                status: document.getElementById('status').value,
+                notes: document.getElementById('notes').value.trim(),
+                doneDate: document.getElementById('status').value === 'Done' ? document.getElementById('done-date').value : '',
+                updatedAt: serverTimestamp()
+            };
+
+            const originalBtnContent = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i><span>Speichere...</span>`;
+
+            try {
+                if (docId) {
+                    const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'tours', docId);
+                    await updateDoc(docRef, tourData);
+                } else {
+                    tourData.createdAt = serverTimestamp();
+                    const collectionRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'tours');
+                    await addDoc(collectionRef, tourData);
+                }
+                closeForm();
+            } catch (err) {
+                console.error("Save Document Error:", err);
+                showError("Fehler beim Speichern der Tour.");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnContent;
+            }
+        });
+
+        async function toggleTourStatus(docId, currentStatus) {
+            if (!currentUser) return;
+            const newStatus = currentStatus === 'Done' ? 'Planned' : 'Done';
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'tours', docId);
+                const updateData = { status: newStatus };
+                if (newStatus === 'Done') updateData.doneDate = new Date().toISOString().split('T')[0];
+                await updateDoc(docRef, updateData);
+            } catch (err) {
+                console.error("Toggle Status Error:", err);
+                showError("Status konnte nicht geändert werden.");
+            }
+        }
+
+        async function deleteTour(docId) {
+            if (!currentUser) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'tours', docId);
+                await deleteDoc(docRef);
+            } catch (err) {
+                console.error("Delete Error:", err);
+                showError("Tour konnte nicht gelöscht werden.");
+            }
+        }
+
+        toggleFormBtn.addEventListener('click', () => { tourFormWrapper.classList.contains('hidden') ? openForm() : closeForm(); });
+        closeFormBtn.addEventListener('click', closeForm);
+        cancelEditBtn.addEventListener('click', closeForm);
+        statusSelect.addEventListener('change', (e) => { e.target.value === 'Done' ? doneDateContainer.classList.remove('hidden') : doneDateContainer.classList.add('hidden'); });
+        filterCategory.addEventListener('change', filterAndRender);
+        filterStatus.addEventListener('change', filterAndRender);
+        searchInput.addEventListener('input', filterAndRender);
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const parts = dateStr.split('-');
+            return parts.length === 3 ? `${parts[2]}.${parts[1]}.${parts[0]}` : dateStr;
+        }
+
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
